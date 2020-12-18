@@ -655,7 +655,7 @@ main(int argc, char *argv[])
 		if (file_addr < 0)
 			file_addr = (off_t)0;
 		showblock(1);
-		read(STDIN_FILENO, &c, 1); /* FIXME: check return value */
+		do{int ret;ret=read(STDIN_FILENO, &c, 1);}while(0); /* FIXME: check return value */
 		if (c == 'a')
 			file_addr -= blocksize;
 		if (c == 'b')
@@ -665,11 +665,11 @@ main(int argc, char *argv[])
 			printf("Enter new starting block (in hex):");
 			if (sizeof (file_addr) > sizeof (long)) {
 				Llong	ll;
-				scanf("%llx", &ll); /* FIXME: check return value */
+				do{int ret;ret=scanf("%llx", &ll);}while(0); /* FIXME: check return value */
 				file_addr = (off_t)ll;
 			} else {
 				long	l;
-				scanf("%lx", &l); /* FIXME: check return value */
+				do{int ret;ret=scanf("%lx", &l);}while(0); /* FIXME: check return value */
 				file_addr = (off_t)l;
 			}
 			file_addr = file_addr * blocksize;
@@ -679,7 +679,7 @@ main(int argc, char *argv[])
 		if (c == 'f') {
 			crsr2(20, 1);
 			printf("Enter new search string:");
-			fgets((char *)search, sizeof (search), stdin); /* FIXME: check return value */
+			do{char *ret;ret=fgets((char *)search, sizeof (search), stdin);}while(0); /* FIXME: check return value */
 			while (search[strlen((char *)search)-1] == '\n')
 				search[strlen((char *)search)-1] = 0;
 			crsr2(20, 1);

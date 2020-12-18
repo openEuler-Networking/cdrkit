@@ -59,7 +59,7 @@ static	void	get_torito_desc(struct eltorito_boot_descriptor *boot_desc);
 static	void	fill_boot_desc(struct eltorito_defaultboot_entry *boot_desc_entry,
 										struct eltorito_boot_entry_info *boot_entry);
 void	get_boot_entry(void);
-void	new_boot_entry(void);
+void	new_boot_entry();
 static	int	tvd_write(FILE *outfile);
 
 
@@ -283,6 +283,7 @@ get_torito_desc(struct eltorito_boot_descriptor *boot_desc)
 	int			i;
 	int			offset;
 	struct eltorito_defaultboot_entry boot_desc_record;
+	struct eltorito_sectionheader_entry section_header;
 
 	memset(boot_desc, 0, sizeof (*boot_desc));
 	boot_desc->type[0] = 0;
@@ -317,7 +318,7 @@ get_torito_desc(struct eltorito_boot_descriptor *boot_desc)
 	 */
 	memset(&valid_desc, 0, sizeof (valid_desc));
 	valid_desc.headerid[0] = 1;
-	valid_desc.arch[0] = EL_TORITO_ARCH_x86;
+	valid_desc.arch[0] = first_boot_entry->arch;
 
 	/*
 	 * we'll shove start of publisher id into id field,
@@ -347,10 +348,53 @@ get_torito_desc(struct eltorito_boot_descriptor *boot_desc)
 	/* now write it to the virtual boot catalog */
 	memcpy(de2->table, &valid_desc, 32);
 
-	for (current_boot_entry = first_boot_entry, offset = sizeof (valid_desc);
-		current_boot_entry != NULL;
-		current_boot_entry = current_boot_entry->next,
-		offset += sizeof (boot_desc_record)) {
+	/* Fill the first entry, since it's special and already has the
+	 * matching header via the validation header... */
+	offset = sizeof (valid_desc);
+	current_boot_entry = first_boot_entry;
+
+	if (offset >= SECTOR_SIZE) {
+#ifdef	USE_LIBSCHILY
+		comerrno(EX_BAD, "Too many El Torito boot entries\n");
+#else
+		fprintf(stderr,	"Too many El Torito boot entries\n");
+		exit(1);
+#endif
+	}
+	fill_boot_desc(&boot_desc_record, current_boot_entry);
+	memcpy(de2->table + offset, &boot_desc_record,
+				sizeof (boot_desc_record));
+
+	offset += sizeof(boot_desc_record);
+
+	for (current_boot_entry = current_boot_entry->next;
+			current_boot_entry != NULL;
+			current_boot_entry = current_boot_entry->next) {
+		struct eltorito_sectionheader_entry section_header;
+
+		if (offset >= SECTOR_SIZE) {
+#ifdef	USE_LIBSCHILY
+			comerrno(EX_BAD,
+			"Too many El Torito boot entries\n");
+#else
+			fprintf(stderr,
+			"Too many El Torito boot entries\n");
+			exit(1);
+#endif
+		}
+
+		memset(&section_header, '\0', sizeof(section_header));
+		if (current_boot_entry->next)
+			section_header.headerid[0] = EL_TORITO_SECTION_HEADER;
+		else
+			section_header.headerid[0] = EL_TORITO_LAST_SECTION_HEADER;
+
+		section_header.arch[0] = current_boot_entry->arch;
+		set_721(section_header.num_entries, 1);
+
+		memcpy(de2->table + offset, &section_header,
+					sizeof(section_header));
+		offset += sizeof(section_header);
 
 		if (offset >= SECTOR_SIZE) {
 #ifdef	USE_LIBSCHILY
@@ -365,6 +409,8 @@ get_torito_desc(struct eltorito_boot_descriptor *boot_desc)
 		fill_boot_desc(&boot_desc_record, current_boot_entry);
 		memcpy(de2->table + offset, &boot_desc_record,
 					sizeof (boot_desc_record));
+		offset += sizeof (boot_desc_record);
+
 	}
 }/* get_torito_desc(... */
 
@@ -660,7 +706,7 @@ fill_boot_desc(struct eltorito_defaultboot_entry *boot_desc_entry,
 		set_731(bi_table.bi_length, de->size);
 		set_731(bi_table.bi_csum, bi_checksum);
 
-		write(bootimage, &bi_table, sizeof (bi_table)); /* FIXME: check return value */
+		do{int ret;ret=write(bootimage, &bi_table, sizeof (bi_table));}while(0); /* FIXME: check return value */
 		close(bootimage);
 	}
 }/* fill_boot_desc(... */

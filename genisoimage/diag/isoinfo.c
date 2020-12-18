@@ -651,7 +651,7 @@ extract_file(struct iso_directory_record *idr)
 #endif
 		len -= tlen;
 		extent++;
-		write(STDOUT_FILENO, buff, tlen); /* FIXME: check return value */
+		do{int ret;ret=write(STDOUT_FILENO, buff, tlen);}while(0); /* FIXME: check return value */
 	}
 }
 

@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl 
+#!/usr/bin/perl 
 # A quick perl hack to get rename files pulled in with icedax.
 # by billo@billo.com
 #
