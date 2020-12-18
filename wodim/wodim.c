@@ -4089,7 +4089,7 @@ audioread(SCSI *usalp, cdr_t *dp, int flags)
 
 	read_scsi(usalp, buf, 1000, 1);
 	printf("XXX:\n");
-	write(1, buf, 512); /* FIXME: handle return value */
+	do{int ret;ret=write(1, buf, 512);}while(0); /* FIXME: handle return value */
 	unload_media(usalp, dp, flags);
 	comexit(0);
 #endif

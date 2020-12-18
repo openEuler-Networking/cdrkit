@@ -47,8 +47,6 @@
 
 #include <mconfig.h>
 #include "genisoimage.h"
-#include "checksum.h"
-#include "iso9660.h"
 #include <errno.h>
 #include <timedefs.h>
 #include <fctldefs.h>
@@ -528,8 +526,6 @@ static const struct ld_option ld_options[] =
 	'\0', NULL, "Set debug flag", ONE_DASH},
 	{{"eltorito-boot", required_argument, NULL, 'b'},
 	'b', "FILE", "Set El Torito boot image name", ONE_DASH},
-	{{"efi-boot", required_argument, NULL, 'e'},
-	'e', "FILE", "Set EFI boot image name", ONE_DASH},
 	{{"eltorito-alt-boot", no_argument, NULL, OPTION_ALT_BOOT},
 	'\0', NULL, "Start specifying alternative El Torito boot parameters", ONE_DASH},
 	{{"sparc-boot", required_argument, NULL, 'B'},
@@ -1539,7 +1535,6 @@ int main(int argc, char *argv[])
 			all_files = 0;
 			break;
 		case 'b':
-		case 'e':
 			do_sort++;		/* We sort bootcat/botimage */
 			use_eltorito++;
 			boot_image = optarg;	/* pathname of the boot image */
@@ -1555,10 +1550,6 @@ int main(int argc, char *argv[])
 #endif
 			}
 			get_boot_entry();
-			if (c == 'e')
-				current_boot_entry->arch = EL_TORITO_ARCH_EFI;
-			else
-				current_boot_entry->arch = EL_TORITO_ARCH_x86;
 			current_boot_entry->boot_image = boot_image;
 			break;
 		case OPTION_ALT_BOOT:
