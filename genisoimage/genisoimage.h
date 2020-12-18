@@ -293,6 +293,7 @@ struct deferred_write {
 struct eltorito_boot_entry_info {
 	struct eltorito_boot_entry_info *next;
 	char		*boot_image;
+	char		arch;
 	int		not_bootable;
 	int		no_emul_boot;
 	int		hard_disk_boot;

@@ -62,9 +62,13 @@ struct iso_volume_descriptor {
 #define	EL_TORITO_ARCH_x86	0
 #define	EL_TORITO_ARCH_PPC	1
 #define	EL_TORITO_ARCH_MAC	2
+#define	EL_TORITO_ARCH_EFI	0xef
 
 #define	EL_TORITO_BOOTABLE	0x88
 #define	EL_TORITO_NOT_BOOTABLE	0
+
+#define	EL_TORITO_SECTION_HEADER	0x90
+#define	EL_TORITO_LAST_SECTION_HEADER	0x91
 
 #define	EL_TORITO_MEDIA_NOEMUL	0
 #define	EL_TORITO_MEDIA_12FLOP	1
@@ -173,12 +177,20 @@ struct eltorito_validation_entry {
 struct eltorito_defaultboot_entry {
 	char boot_id			[ISODCL(1,    1)]; /* 711 */
 	char boot_media			[ISODCL(2,    2)];
-	char loadseg			[ISODCL(3,    4)]; /* 711 */
+	char loadseg			[ISODCL(3,    4)]; /* 712 */
 	char sys_type			[ISODCL(5,    5)];
 	char pad1			[ISODCL(6,    6)];
 	char nsect			[ISODCL(7,    8)];
 	char bootoff			[ISODCL(9,   12)];
 	char pad2			[ISODCL(13,  32)];
+};
+
+/* El Torito Section Header Entry in boot catalog */
+struct eltorito_sectionheader_entry {
+	char headerid			[ISODCL(1,    1)]; /* 711 */
+	char arch			[ISODCL(2,    2)];
+	char num_entries		[ISODCL(3,    4)]; /* 711 */
+	char id				[ISODCL(5,   32)];
 };
 
 /*

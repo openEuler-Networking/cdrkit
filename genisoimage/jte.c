@@ -36,6 +36,8 @@
 #include "vms.h"
 #endif
 
+#include "md5.h"
+
 /* Different types used in building our state list below */
 #define JTET_FILE_MATCH 1
 #define JTET_NOMATCH    2
@@ -625,7 +627,7 @@ static void flush_bz2_chunk(void *buffer, off_t size)
 
     err = BZ2_bzCompressInit(&c_stream, 9, 0, 0);
     comp_buf = malloc(2 * size); /* Worst case */
-    c_stream.next_out = comp_buf;
+    c_stream.next_out = (char *)comp_buf;
     c_stream.avail_out = 2 * size;
     c_stream.next_in = buffer;
     c_stream.avail_in = size;
@@ -673,7 +675,7 @@ static void write_compressed_chunk(unsigned char *buffer, size_t size)
 		if (!uncomp_buf)
 		{
 #ifdef	USE_LIBSCHILY
-            comerr("failed to allocate %d bytes for template compression buffer\n", uncomp_size);
+            comerr("failed to allocate %d bytes for template compression buffer\n", (int)uncomp_size);
 #else
             fprintf(stderr, "failed to allocate %d bytes for template compression buffer\n", uncomp_size);
             exit(1);
@@ -1014,8 +1016,8 @@ void write_jt_match_record(char *filename, char *mirror_name, int sector_size, o
 #endif
 		}
         if (first_block)
-            rsync64_sum = rsync64(buf, MIN_JIGDO_FILE_SIZE);
-        checksum_update(iso_context, buf, use);
+            rsync64_sum = rsync64((unsigned char *)buf, MIN_JIGDO_FILE_SIZE);
+        checksum_update(iso_context, (unsigned char *)buf, use);
 //        mk_MD5Update(&iso_context, buf, use);
         remain -= use;
         first_block = 0;
@@ -1028,7 +1030,7 @@ void write_jt_match_record(char *filename, char *mirror_name, int sector_size, o
     {
         int pad_size = sector_size - (size % sector_size);
         memset(buf, 0, pad_size);
-        checksum_update(iso_context, buf, pad_size);
+        checksum_update(iso_context, (unsigned char *)buf, pad_size);
 //        mk_MD5Update(&iso_context, buf, pad_size);
     }
 
@@ -1036,7 +1038,7 @@ void write_jt_match_record(char *filename, char *mirror_name, int sector_size, o
     if (size % sector_size)
     {
         int pad_size = sector_size - (size % sector_size);
-        write_compressed_chunk(buf, pad_size);
+        write_compressed_chunk((unsigned char *)buf, pad_size);
         add_unmatched_entry(pad_size);
     }        
 }
