@@ -17,7 +17,8 @@
 #include "md5.h"
 #endif
 #ifdef	USE_PARANOIA
-#include "cdda_paranoia.h"
+#include <cdda/cdda_interface.h>
+#include <cdda/cdda_paranoia.h>
 #endif
 
 typedef struct index_list
@@ -102,10 +103,10 @@ typedef struct global
 
 	struct paranoia_parms_t
 	{
-	        Ucbit	disable_paranoia:1;
-	        Ucbit	disable_extra_paranoia:1;
-	        Ucbit	disable_scratch_detect:1;
-	        Ucbit	disable_scratch_repair:1;
+	        char	disable_paranoia:1;
+	        char	disable_extra_paranoia:1;
+	        char	disable_scratch_detect:1;
+	        char	disable_scratch_repair:1;
 		int	retries;
 		int	overlap;
 		int	mindynoverlap;

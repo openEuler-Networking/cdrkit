@@ -280,7 +280,7 @@ extern int list_file_in_jigdo(char *filename, off_t size, char **realname, unsig
     if (!jtemplate_out)
         return 0;
 
-    memset(md5, 0, sizeof(md5));
+    memset(md5, 0, 16);
 
     /* Cheaper to check file size first */
     if (size < jte_min_size)

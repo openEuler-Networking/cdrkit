@@ -946,6 +946,40 @@ int main(int argc, char *argv[])
 		print_toc(usalp, dp);
 		comexit(0);
 	}
+	
+	if ((flags & F_FORMAT) || (dp->cdr_dstat->ds_flags & DSF_NEED_FORMAT)) {
+		printf("wodim: media format asked\n");
+		/*
+		* Do not abort if OPC failes. Just give it a chance
+		* for better laser power calibration than without OPC.
+		*
+		* Ricoh drives return with a vendor unique sense code.
+		* This is most likely because they refuse to do OPC
+		* on a non blank media.
+		*/
+		usalp->silent++;
+		do_opc(usalp, dp, flags);
+		usalp->silent--;
+		wait_unit_ready(usalp, 120);
+		if (gettimeofday(&starttime, (struct timezone *)0) < 0)
+			errmsg("Cannot get start time\n");
+		
+		if ((*dp->cdr_format)(usalp, dp, formattype) < 0) {
+			errmsgno(EX_BAD, "Cannot format disk, aborting.\n");
+			comexit(EX_BAD);
+		}
+		if (gettimeofday(&fixtime, (struct timezone *)0) < 0)
+			errmsg("Cannot get format time\n");
+		if (lverbose)
+			prtimediff("Formatting time: ", &starttime, &fixtime);
+
+		if (!wait_unit_ready(usalp, 240) || tracks == 0) {
+			comexit(0);
+		}
+		if (gettimeofday(&starttime, (struct timezone *)0) < 0)
+			errmsg("Cannot get start time\n");
+	}
+	
 #ifdef	XXX
 	if ((*dp->cdr_check_session)() < 0) {
 		comexit(EX_BAD);
@@ -1229,38 +1263,6 @@ int main(int argc, char *argv[])
 		if (!wait_unit_ready(usalp, 240) || tracks == 0) {
 			comexit(0);
 		}
-	}
-	if (flags & F_FORMAT) {
-		printf("wodim: media format asked\n");
-		/*
-		* Do not abort if OPC failes. Just give it a chance
-		* for better laser power calibration than without OPC.
-		*
-		* Ricoh drives return with a vendor unique sense code.
-		* This is most likely because they refuse to do OPC
-		* on a non blank media.
-		*/
-		usalp->silent++;
-		do_opc(usalp, dp, flags);
-		usalp->silent--;
-		wait_unit_ready(usalp, 120);
-		if (gettimeofday(&starttime, (struct timezone *)0) < 0)
-			errmsg("Cannot get start time\n");
-
-		if ((*dp->cdr_format)(usalp, dp, formattype) < 0) {
-			errmsgno(EX_BAD, "Cannot format disk, aborting.\n");
-			comexit(EX_BAD);
-		}
-		if (gettimeofday(&fixtime, (struct timezone *)0) < 0)
-			errmsg("Cannot get format time\n");
-		if (lverbose)
-			prtimediff("Formatting time: ", &starttime, &fixtime);
-
-		if (!wait_unit_ready(usalp, 240) || tracks == 0) {
-			comexit(0);
-		}
-		if (gettimeofday(&starttime, (struct timezone *)0) < 0)
-			errmsg("Cannot get start time\n");
 	}
 	/*
 	* Reset start time so we will not see blanking time and

@@ -183,7 +183,7 @@ mk_MD5Final (unsigned char digest[16], struct mk_MD5Context *ctx)
 	putu32(ctx->buf[1], digest + 4);
 	putu32(ctx->buf[2], digest + 8);
 	putu32(ctx->buf[3], digest + 12);
-	memset(ctx, 0, sizeof(ctx));	/* In case it's sensitive */
+	memset(ctx, 0, sizeof(*ctx));	/* In case it's sensitive */
 }
 
 /* The four core functions - F1 is optimized somewhat */

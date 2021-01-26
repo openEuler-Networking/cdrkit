@@ -36,6 +36,11 @@
 #include <schily.h>
 #include <device.h>
 
+/* "major" and "minor" macros will be moved to sysmacros.h
+ * silence the warning
+ * added by cdrkit-1.1.11-sysmacros.patch */
+#include <sys/sysmacros.h>
+
 #include <usal/scsitransp.h>
 
 #include "mycdrom.h"

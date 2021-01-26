@@ -35,7 +35,8 @@ static int encspeed()
 	secs = 10;
 	end = 75*1000000 * secs;
 
-	memset(sect, 0, sizeof(sect));
+	//faulty and unneccessary, immediately rewritten again
+	//memset(sect, 0, sizeof(sect));
 	for (i=0; i < 2352; ) {
 		sect[i++] = 'J';
 		sect[i++] = 'S';

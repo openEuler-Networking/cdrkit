@@ -120,6 +120,10 @@
 #ifdef	USE_LAME
 #include "mp3.h"	/* mp3 file handling */
 #endif
+#ifdef	USE_PARANOIA
+#include <cdda/cdda_interface.h>
+#include <cdda/cdda_paranoia.h>
+#endif
 #include "interface.h"  /* low level cdrom interfacing */
 #include "icedax.h"
 #include "resample.h"
@@ -128,9 +132,6 @@
 #include "ringbuff.h"
 #include "global.h"
 #include "exitcodes.h"
-#ifdef	USE_PARANOIA
-#include "cdda_paranoia.h"
-#endif
 #include "defaults.h"
 
 static void RestrictPlaybackRate(long newrate);
@@ -800,7 +801,7 @@ static void init_globals()
   global.useroverlap = -1;      /* amount of overlapping sectors user override */
   global.need_hostorder = 0;	/* processing needs samples in host endianess */
   global.in_lendian = -1;	/* input endianess from SetupSCSI() */
-  global.outputendianess = NONE; /* user specified output endianess */
+  global.outputendianess = NONE_EN; /* user specified output endianess */
   global.findminmax  =  0;	/* flag find extrem amplitudes */
 #ifdef HAVE_LIMITS_H
   global.maxamp[0] = INT_MIN;	/* maximum amplitude */
@@ -2418,7 +2419,7 @@ Rate   Divider      Rate   Divider      Rate   Divider      Rate   Divider\n\
   if (bulk == -1) bulk = 0;
 
   global.need_big_endian = global.audio_out->need_big_endian;
-  if (global.outputendianess != NONE)
+  if (global.outputendianess != NONE_EN)
     global.need_big_endian = global.outputendianess == BIG;
 
   if (global.no_file) global.fname_base[0] = '\0';
@@ -2602,7 +2603,7 @@ Rate   Divider      Rate   Divider      Rate   Divider      Rate   Divider\n\
     fputs( ", soundcard", stderr );
 #endif
 #if defined USE_PARANOIA
-    fputs( ", libparanoia", stderr );
+    fputs( ", libcdda_paranoia", stderr );
 #endif
     fputs( " support\n", stderr );
   }
@@ -2892,8 +2893,28 @@ Rate   Divider      Rate   Divider      Rate   Divider      Rate   Divider\n\
 #ifdef	USE_PARANOIA
 	if (global.paranoia_selected) {
 		long paranoia_mode;
+		cdrom_drive *tmpdrive;
+		usal_close(get_scsi_p());
 
-		global.cdp = paranoia_init(get_scsi_p(), global.nsectors);
+		tmpdrive = cdda_identify(global.dev_name, 0, NULL);
+		if (!tmpdrive)
+		{
+			fputs("Can't identify disc\n", stderr);
+                	return 1;
+		}
+
+		if(global.nsectors)
+		{
+		  tmpdrive->nsectors = global.nsectors;
+		  tmpdrive->bigbuff = global.nsectors * CD_FRAMESIZE_RAW;
+		}
+		if (cdda_open(tmpdrive) != 0)
+		{
+		  fputs("Can't open disc\n", stderr);
+		  cdda_close(tmpdrive);
+		  return 1;
+		}
+		global.cdp = paranoia_init(tmpdrive);
 
 		if (global.paranoia_parms.overlap >= 0) {
 			int	overlap = global.paranoia_parms.overlap;
@@ -2902,17 +2923,7 @@ Rate   Divider      Rate   Divider      Rate   Divider      Rate   Divider\n\
 				overlap = global.nsectors - 1;
 			paranoia_overlapset(global.cdp, overlap);
 		}
-		/*
-		 * Default to a  minimum of dynamic overlapping == 0.5 sectors.
-		 * If we don't do this, we get the default from libparanoia
-		 * which is approx. 0.1.
-		 */
-		if (global.paranoia_parms.mindynoverlap < 0)
-			paranoia_dynoverlapset(global.cdp, CD_FRAMEWORDS/2, -1);
-		paranoia_dynoverlapset(global.cdp,
-			global.paranoia_parms.mindynoverlap * CD_FRAMEWORDS,
-			global.paranoia_parms.maxdynoverlap * CD_FRAMEWORDS);
-
+	
 		paranoia_mode = PARANOIA_MODE_FULL ^ PARANOIA_MODE_NEVERSKIP;
 
 		if (global.paranoia_parms.disable_paranoia) {

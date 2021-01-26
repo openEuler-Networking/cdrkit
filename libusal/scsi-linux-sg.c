@@ -509,7 +509,9 @@ usalo_open(SCSI *usalp, char *device)
 		/* scan and maybe keep one open, sg_setup decides */
 #define HDX 0
 #define SCD 1
-#define SG 2
+/* second scd option included because of Fedora naming convention /dev/srN */
+#define SCD2 2
+#define SG 3
 		int h;
 /*
 retry_scan_open:
@@ -530,6 +532,15 @@ retry_scan_open:
 						if(!check_linux_26())
 							continue;
 						pattern="/dev/scd%d";
+						first=0;
+						last=255;
+						break;
+					}
+				case(SCD2):
+					{
+						if(!check_linux_26())
+							continue;
+						pattern="/dev/sr%d";
 						first=0;
 						last=255;
 						break;

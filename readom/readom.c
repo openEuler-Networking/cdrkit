@@ -906,7 +906,7 @@ read_ftoc(SCSI *usalp, parm_t *parmp, BOOL do_sectype)
 
 
 	strcpy(filename, "toc.dat");
-	if (strcmp(parmp->name, "/dev/null") != 0) {
+	if (parmp != NULL && strcmp(parmp->name, "/dev/null") != 0) {
 
 		len = strlen(parmp->name);
 		if (len > (sizeof (filename)-5)) {
