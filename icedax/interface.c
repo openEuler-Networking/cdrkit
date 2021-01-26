@@ -55,6 +55,11 @@
 #include <sys/ioctl.h>
 #include <statdefs.h>
 
+/* "major" and "minor" macros will be moved to sysmacros.h
+ * silence the warning
+ * added by cdrkit-1.1.11-sysmacros.patch */
+#include <sys/sysmacros.h>
+
 
 #include "mycdrom.h"
 #include "lowlevel.h"
@@ -116,7 +121,7 @@ int		(*Play_at)(SCSI *usalp, unsigned int from_sector, unsigned int sectors);
 int		(*StopPlay)(SCSI *usalp);
 void		(*trash_cache)(UINT4 *p, unsigned lSector, unsigned SectorBurstVal);
 
-#if	defined	USE_PARANOIA
+#if	0 //defined	USE_PARANOIA
 long cdda_read(void *d, void *buffer, long beginsector, long sectors);
 
 long cdda_read(void *d, void *buffer, long beginsector, long sectors)

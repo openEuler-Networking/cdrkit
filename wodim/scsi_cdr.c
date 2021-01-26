@@ -1328,7 +1328,7 @@ scsi_format(SCSI *usalp, caddr_t addr, int size, BOOL background)
 	}
 	sleep(10);
 	printf("\rFormating in progress: 100.00 %% done.        \n");
-	if (pid) exit (0);
+	if (pid > 0) exit (0);
 	return ret;
 }
 

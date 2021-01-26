@@ -1507,6 +1507,11 @@ getdisktype_mdvd(SCSI *usalp, cdr_t *dp)
 	dstat_t	*dsp = dp->cdr_dstat;
 
 	struct track_info track_info;
+
+	extern char *buf;
+	struct disk_info *dip;
+	int profile;
+
     if(lverbose)
         printf("HINT: use dvd+rw-mediainfo from dvd+rw-tools for information extraction.\n");
 	/* if(getdisktype_mmc(usalp, dp)<0)
@@ -1521,6 +1526,18 @@ getdisktype_mdvd(SCSI *usalp, cdr_t *dp)
 	dsp->ds_disktype&= ~DT_CD;
 	dsp->ds_disktype|= DT_DVD;
 
+	profile = get_curprofile(usalp);
+	if (profile == 0x1A) {
+		dip = (struct disk_info *)buf;
+		if (get_diskinfo(usalp, dip) < 0)
+			return (-1);
+		if (dip->disk_status == DS_EMPTY) {	/* Unformatted	    */
+			dsp->ds_flags |= DSF_NEED_FORMAT;
+			if(lverbose)
+				printf("The medium is empty, it will be auto formatted.\n");
+		}
+	}
+	
 	return (ret);
 
 }

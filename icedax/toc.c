@@ -379,8 +379,7 @@ static void emit_cddb_form(char *fname_baseval);
 static void emit_cdindex_form(char *fname_baseval);
 #endif
 
-
-typedef struct TOC {	/* structure of table of contents (cdrom) */
+typedef struct TOC_t {	/* structure of table of contents (cdrom) */
 	unsigned char reserved1;
 	unsigned char bFlags;
 	unsigned char bTrack;
@@ -391,8 +390,7 @@ typedef struct TOC {	/* structure of table of contents (cdrom) */
 	int frms;
 	unsigned char ISRC[16];
 	int	SCMS;
-} TOC;
-
+} TOC_t;
 
 /* Flags contains two fields:
     bits 7-4 (ADR)
@@ -432,7 +430,7 @@ struct iterator {
 	int index;
 	int startindex;
 	void        (*reset)(struct iterator *this);
-	struct TOC *(*getNextTrack)(struct iterator *this);
+	struct TOC_t *(*getNextTrack)(struct iterator *this);
 	int         (*hasNextTrack)(struct iterator *this);
 };
 
@@ -518,7 +516,7 @@ unsigned FixupTOC(unsigned no_tracks)
 		    InitIterator(&i, 1);
 
 	    while (i.hasNextTrack(&i)) {
-		    struct TOC *p = i.getNextTrack(&i);
+		    struct TOC_t *p = i.getNextTrack(&i);
 		    if (IS__AUDIO(p)) count_audio_tracks++;
 	    }
 
@@ -733,7 +731,7 @@ static void emit_cddb_form(char *fname_baseval)
   fprintf( cddb_form, "# Track frame offsets:\n#\n");
 
   while (i.hasNextTrack(&i)) {
-	  struct TOC *p = i.getNextTrack(&i);
+	  struct TOC_t *p = i.getNextTrack(&i);
 	  if (GETTRACK(p) == CDROM_LEADOUT) break;
 	  fprintf( cddb_form,
 		   "# %lu\n", 150 + Get_AudioStartSector(GETTRACK(p)));
@@ -765,7 +763,7 @@ static void emit_cddb_form(char *fname_baseval)
 
   i.reset(&i);
   while (i.hasNextTrack(&i)) {
-	  struct TOC *p = i.getNextTrack(&i);
+	  struct TOC_t *p = i.getNextTrack(&i);
 	  int ii;
 
 	  ii = GETTRACK(p);
@@ -788,7 +786,7 @@ static void emit_cddb_form(char *fname_baseval)
 
   i.reset(&i);
   while (i.hasNextTrack(&i)) {
-	  struct TOC *p = i.getNextTrack(&i);
+	  struct TOC_t *p = i.getNextTrack(&i);
 	  int ii;
 
 	  ii = GETTRACK(p);
@@ -1495,7 +1493,7 @@ static int IsSingleArtist(void)
 	InitIterator(&i, 1);
 
 	while (i.hasNextTrack(&i)) {
-		struct TOC *p = i.getNextTrack(&i);
+		struct TOC_t *p = i.getNextTrack(&i);
 		int ii;
 
 		if (IS__DATA(p) || GETTRACK(p) == CDROM_LEADOUT) continue;
@@ -1681,7 +1679,7 @@ static void emit_cdindex_form(char *fname_baseval)
 	 global.creator ? ascii2html(global.creator) : "");
 
     while (i.hasNextTrack(&i)) {
-	    struct TOC *p = i.getNextTrack(&i);
+	    struct TOC_t *p = i.getNextTrack(&i);
 	    int ii = GETTRACK(p);
 
 	    if (ii == CDROM_LEADOUT) break;
@@ -1703,7 +1701,7 @@ static void emit_cdindex_form(char *fname_baseval)
     fprintf( cdindex_form, "   <MultipleArtistCD>\n");
 
     while (i.hasNextTrack(&i)) {
-	    struct TOC *p = i.getNextTrack(&i);
+	    struct TOC_t *p = i.getNextTrack(&i);
 	    int ii = GETTRACK(p);
 
 	    if (ii == CDROM_LEADOUT) break;
@@ -1942,9 +1940,9 @@ static void DisplayToc_with_gui(unsigned long dw)
 
 	if ((global.verbose & (SHOW_TOC | SHOW_STARTPOSITIONS | SHOW_SUMMARY | SHOW_TITLES)) != 0
 	    && i.hasNextTrack(&i)) {
-		TOC *o = i.getNextTrack(&i);
+		TOC_t *o = i.getNextTrack(&i);
 		while (i.hasNextTrack(&i)) {
-			TOC *p = i.getNextTrack(&i);
+			TOC_t *p = i.getNextTrack(&i);
 			int from;
 			from = GETTRACK(o);
 
@@ -2072,9 +2070,9 @@ static void DisplayToc_no_gui(unsigned long dw)
 	count_audio_trks = 0;
 
 	if (i.hasNextTrack(&i)) {
-		TOC *o = i.getNextTrack(&i);
+		TOC_t *o = i.getNextTrack(&i);
 		while (i.hasNextTrack(&i)) {
-			TOC *p = i.getNextTrack(&i);
+			TOC_t *p = i.getNextTrack(&i);
 			int from;
 			from = GETTRACK(o);
 
@@ -2131,10 +2129,10 @@ static void DisplayToc_no_gui(unsigned long dw)
 	i.reset(&i);
 	if ((global.verbose & SHOW_TOC) != 0 &&
 		i.hasNextTrack(&i)) {
-		TOC *o = i.getNextTrack(&i);
+		TOC_t *o = i.getNextTrack(&i);
 
 		for (; i.hasNextTrack(&i);) {
-			TOC *p = i.getNextTrack(&i);
+			TOC_t *p = i.getNextTrack(&i);
 
 			if ( GETTRACK(o) <= MAXTRK ) {
 				unsigned char brace1, brace2;
@@ -2189,9 +2187,9 @@ static void DisplayToc_no_gui(unsigned long dw)
 		ii = 0;
 		i.reset(&i);
 		if (i.hasNextTrack(&i)) {
-			TOC *o = i.getNextTrack(&i);
+			TOC_t *o = i.getNextTrack(&i);
 			for ( ; i.hasNextTrack(&i);) {
-				TOC *p = i.getNextTrack(&i);
+				TOC_t *p = i.getNextTrack(&i);
 				fprintf ( stderr,
 					  " %2u.(%8u)",
 					  GETTRACK(o),
@@ -2248,7 +2246,7 @@ static void DisplayToc_no_gui(unsigned long dw)
 
 		i.reset(&i);
 		for ( ; i.hasNextTrack(&i);) {
-			TOC *p = i.getNextTrack(&i);
+			TOC_t *p = i.getNextTrack(&i);
 			int jj = GETTRACK(p);
 
 			if ( global.tracktitle[jj] != NULL ) {
@@ -2260,7 +2258,7 @@ static void DisplayToc_no_gui(unsigned long dw)
 		
 		i.reset(&i);
 		for ( ; i.hasNextTrack(&i); ) {
-			TOC *p = i.getNextTrack(&i);
+			TOC_t *p = i.getNextTrack(&i);
 			int jj;
 
 			if (IS__DATA(p))
@@ -2720,7 +2718,7 @@ void Read_MCN_ISRC(void)
 		InitIterator(&i, 1);
 
 		while (i.hasNextTrack(&i)) {
-			struct TOC *p = i.getNextTrack(&i);
+			struct TOC_t *p = i.getNextTrack(&i);
 			unsigned ii = GETTRACK(p);
 			
 			if (ii == CDROM_LEADOUT) break;
@@ -3155,7 +3153,7 @@ unsigned ScanIndices(unsigned track, unsigned cd_index, int bulk)
 
 
   while (i.hasNextTrack(&i)) {
-	  struct TOC *p = i.getNextTrack(&i);
+	  struct TOC_t *p = i.getNextTrack(&i);
 	  unsigned ii = GETTRACK(p);
 
 	  if ( ii < starttrack || IS__DATA(p) )
@@ -3322,7 +3320,7 @@ unsigned char *Get_MCN(void)
 }
 
 
-static TOC g_toc [MAXTRK+1]; /* hidden track + 100 regular tracks */
+static TOC_t g_toc [MAXTRK+1]; /* hidden track + 100 regular tracks */
 
 /*#define IS_AUDIO(i) (!(g_toc[i].bFlags & 0x40))*/
 
@@ -3397,10 +3395,10 @@ static int patch_cd_extra(unsigned track, unsigned long sector)
 
 static int restrict_tracks_illleadout(void)
 {
-	struct TOC *o = &g_toc[cdtracks+1];
+	struct TOC_t *o = &g_toc[cdtracks+1];
 	int i;
 	for (i = cdtracks; i >= 0; i--) {
-		struct TOC *p = &g_toc[i];
+		struct TOC_t *p = &g_toc[i];
 		if (GETSTART(o) > GETSTART(p)) break;
 	}
 	patch_cd_extra(i+1, GETSTART(o));
@@ -3523,7 +3521,7 @@ static void it_reset(struct iterator *this)
 
 
 static int it_hasNextTrack(struct iterator *this);
-static struct TOC *it_getNextTrack(struct iterator *this);
+static struct TOC_t *it_getNextTrack(struct iterator *this);
 
 static int it_hasNextTrack(struct iterator *this)
 {
@@ -3532,7 +3530,7 @@ static int it_hasNextTrack(struct iterator *this)
 
 
 
-static struct TOC *it_getNextTrack(struct iterator *this)
+static struct TOC_t *it_getNextTrack(struct iterator *this)
 {
 	/* if ( (*this->hasNextTrack)(this) == 0 ) return NULL; */
 	if ( this->index > (int)cdtracks+1 ) return NULL;
@@ -3583,7 +3581,7 @@ long Get_AudioStartSector(unsigned long p_track)
 	if (p_track == cdtracks + 1) p_track = CDROM_LEADOUT;
 
 	while (i.hasNextTrack(&i)) {
-		TOC *p = i.getNextTrack(&i);
+		TOC_t *p = i.getNextTrack(&i);
 
 		if (GETTRACK(p) == p_track) {
 			if (IS__DATA(p)) {
@@ -3613,7 +3611,7 @@ long Get_StartSector(unsigned long p_track)
 	if (p_track == cdtracks + 1) p_track = CDROM_LEADOUT;
 
 	while (i.hasNextTrack(&i)) {
-		TOC *p = i.getNextTrack(&i);
+		TOC_t *p = i.getNextTrack(&i);
 
 		if (GETTRACK(p) == p_track) {
 			return GETSTART(p);
@@ -3637,7 +3635,7 @@ long Get_EndSector(unsigned long p_track)
 	if (p_track == cdtracks + 1) p_track = CDROM_LEADOUT;
 
 	while (i.hasNextTrack(&i)) {
-		TOC *p = i.getNextTrack(&i);
+		TOC_t *p = i.getNextTrack(&i);
 		if (GETTRACK(p) == p_track) {
 			p = i.getNextTrack(&i);
 			if (p == NULL) {
@@ -3669,7 +3667,7 @@ long FirstAudioTrack(void)
 	else i.reset(&i);
 
 	while (i.hasNextTrack(&i)) {
-		TOC *p = i.getNextTrack(&i);
+		TOC_t *p = i.getNextTrack(&i);
 		unsigned ii = GETTRACK(p);
 
 		if (ii == CDROM_LEADOUT) break;
@@ -3687,7 +3685,7 @@ long FirstDataTrack(void)
 	else i.reset(&i);
 
 	while (i.hasNextTrack(&i)) {
-		TOC *p = i.getNextTrack(&i);
+		TOC_t *p = i.getNextTrack(&i);
 		if (IS__DATA(p)) {
 			return GETTRACK(p);
 		}
@@ -3708,7 +3706,7 @@ long LastAudioTrack(void)
 	else i.reset(&i);
 
 	while (i.hasNextTrack(&i)) {
-		TOC *p = i.getNextTrack(&i);
+		TOC_t *p = i.getNextTrack(&i);
 		if (IS__AUDIO(p) && (GETTRACK(p) != CDROM_LEADOUT)) {
 			j = GETTRACK(p);
 		}
@@ -3730,7 +3728,7 @@ long Get_LastSectorOnCd(unsigned long p_track)
 	if (p_track == cdtracks + 1) p_track = CDROM_LEADOUT;
 
 	while (i.hasNextTrack(&i)) {
-		TOC *p = i.getNextTrack(&i);
+		TOC_t *p = i.getNextTrack(&i);
 
 		if (GETTRACK(p) < p_track)
 			continue;
@@ -3749,9 +3747,9 @@ int Get_Track(unsigned long sector)
 	else i.reset(&i);
 
 	if (i.hasNextTrack(&i)) {
-		TOC *o = i.getNextTrack(&i);
+		TOC_t *o = i.getNextTrack(&i);
 		while (i.hasNextTrack(&i)) {
-			TOC *p = i.getNextTrack(&i);
+			TOC_t *p = i.getNextTrack(&i);
 			if ((GETSTART(o) <= sector) && (GETSTART(p) > sector)) {
 				if (IS__DATA(o)) {
 					return -1;
@@ -3772,7 +3770,7 @@ int CheckTrackrange(unsigned long from, unsigned long upto)
 	else i.reset(&i);
 
 	while (i.hasNextTrack(&i)) {
-		TOC *p = i.getNextTrack(&i);
+		TOC_t *p = i.getNextTrack(&i);
 
 		if (GETTRACK(p) < from)
 			continue;
@@ -3788,54 +3786,3 @@ int CheckTrackrange(unsigned long from, unsigned long upto)
 	return 0;
 }
 
-#ifdef	USE_PARANOIA
-long cdda_disc_firstsector(void *d);
-
-long cdda_disc_firstsector(void *d)
-{
-	return Get_StartSector(FirstAudioTrack());
-}
-
-int cdda_tracks(void *d);
-
-int cdda_tracks(void *d)
-{
-	return LastAudioTrack() - FirstAudioTrack() +1;
-}
-
-int cdda_track_audiop(void *d, int track);
-
-int cdda_track_audiop(void *d, int track)
-{
-	return Get_Datatrack(track) == 0;
-}
-
-long cdda_track_firstsector(void *d, int track);
-
-long cdda_track_firstsector(void *d, int track)
-{
-	return Get_AudioStartSector(track);
-}
-
-long cdda_track_lastsector(void *d, int track);
-
-long cdda_track_lastsector(void *d, int track)
-{
-	return Get_EndSector(track);
-}
-
-long cdda_disc_lastsector(void *d);
-
-long cdda_disc_lastsector(void *d)
-{
-	return Get_LastSectorOnCd(cdtracks) - 1;
-}
-
-int cdda_sector_gettrack(void *d,long sector);
-
-int cdda_sector_gettrack(void *d, long sector)
-{
-	return Get_Track(sector);
-}
-
-#endif

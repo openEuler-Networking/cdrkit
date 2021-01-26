@@ -48,6 +48,12 @@
 #include <fctldefs.h>
 #include <device.h>
 #include <schily.h>
+#include <libgen.h>
+
+/* "major" and "minor" macros will be moved to sysmacros.h
+ * silence the warning
+ * added by cdrkit-1.1.11-sysmacros.patch */
+#include <sys/sysmacros.h>
 
 extern int allow_limited_size;
 
@@ -1421,12 +1427,16 @@ insert_file_entry(struct directory *this_dir, char *whole_path,
 		return (0);
 	}
 	if (this_dir == root && strcmp(short_name, ".") == 0)
-		root_statbuf = statbuf;	/* Save this for later on */
+		memcpy(&root_statbuf, &statbuf, sizeof(root_statbuf));  /* Save this for later on */
 
 	/* We do this to make sure that the root entries are consistent */
 	if (this_dir == root && strcmp(short_name, "..") == 0) {
-		statbuf = root_statbuf;
-		lstatbuf = root_statbuf;
+		/* for the case .. comes before . */
+		if (!root_statbuf.st_ctime) {
+			stat_filter(dirname(whole_path), &root_statbuf);
+		}
+		memcpy(&statbuf, &root_statbuf, sizeof(statbuf));
+		memcpy(&lstatbuf, &root_statbuf, sizeof(lstatbuf));
 	}
 	if (S_ISLNK(lstatbuf.st_mode)) {
 

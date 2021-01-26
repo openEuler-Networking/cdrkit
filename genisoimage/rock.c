@@ -39,6 +39,11 @@
 #include <device.h>
 #include <schily.h>
 
+/* "major" and "minor" macros will be moved to sysmacros.h
+ * silence the warning
+ * added by cdrkit-1.1.11-sysmacros.patch */
+#include <sys/sysmacros.h>
+
 #define	SU_VERSION 1
 
 #define	SL_ROOT    8

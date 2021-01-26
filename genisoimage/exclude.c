@@ -39,7 +39,7 @@ exclude(char *fn)
 {
 	register int	i;
 
-	for (i = 0; excl[i] && i < MAXEXCL; i++)
+	for (i = 0; i < MAXEXCL && excl[i]; i++)
 		;
 
 	if (i == MAXEXCL) {
@@ -69,7 +69,7 @@ is_excluded(char *fn)
 	/*
 	 * very dumb search method ...
 	 */
-	for (i = 0; excl[i] && i < MAXEXCL; i++) {
+	for (i = 0; i < MAXEXCL && excl[i]; i++) {
 		if (strcmp(excl[i], fn) == 0) {
 			return (1);	/* found -> excluded filenmae */
 		}

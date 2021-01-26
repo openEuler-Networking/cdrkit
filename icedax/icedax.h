@@ -41,7 +41,7 @@
 
 /* Endianess */
 #define GUESS (-2)
-#define NONE (-1)
+#define NONE_EN (-1)
 #define LITTLE 0
 #define BIG 1
 

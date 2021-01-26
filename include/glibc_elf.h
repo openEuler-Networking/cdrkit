@@ -2081,7 +2081,8 @@ typedef Elf32_Addr Elf32_Conflict;
 #define R_PPC64_DTPREL16_HIGHESTA 106 /* half16	(sym+add)@dtprel@highesta */
 
 /* Keep this the last entry.  */
-#define R_PPC64_NUM		107
+//symbol conflicting with system headers on ppc64le and nowhere used
+//#define R_PPC64_NUM		107
 
 /* PowerPC64 specific values for the Dyn d_tag field.  */
 #define DT_PPC64_GLINK  (DT_LOPROC + 0)
